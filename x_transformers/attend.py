@@ -15,6 +15,10 @@ from dataclasses import dataclass
 
 from einops import rearrange, repeat, pack, unpack
 
+# Use built-in kernels
+import torch_xla.experimental.custom_kernel
+import torch_xla.distributed.spmd as xs
+
 # constants
 
 @dataclass
@@ -390,7 +394,7 @@ class Attend(Module):
             mask = attn_bias
 
         # pytorch 2.0 flash attn: q, k, v, mask, dropout, causal, softmax_scale
-
+        """
         with self.sdp_context_manager():
             out = F.scaled_dot_product_attention(
                 q, k, v,
@@ -398,7 +402,17 @@ class Attend(Module):
                 dropout_p = self.dropout if self.training else 0., 
                 is_causal = causal
             )
-
+        """
+        output = flash_attention(
+            q = q,
+            k = k,
+            v = v,
+            causal = causal,
+            ab = mask,
+            partition_spec = ("fsdp", "tensor", None, None),
+            mesh = xs.get_global_mesh(),
+            )
+        
         # for a row that is entirely masked out, should zero out the output of that row token
 
         if exists(row_is_entirely_masked) and row_is_entirely_masked.any():
