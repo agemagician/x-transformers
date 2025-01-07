@@ -328,7 +328,8 @@ class Attend(Module):
 
         if exists(self.scale):
             default_scale = q.shape[-1] ** -0.5
-            q = q * (self.scale / default_scale)
+            current_scale = (self.scale / default_scale)
+            q = q * current_scale
 
         # Check if mask exists and expand to compatible shape
         # The mask is B L, so it would have to be expanded to B H N L
@@ -413,7 +414,7 @@ class Attend(Module):
             ab = mask,
             partition_spec = ("fsdp", "tensor", None, None),
             #sm_scale = self.scale,
-            sm_scale = 1 / math.sqrt(q.size(-1)),
+            sm_scale = current_scale if exists(self.scale) else 1 / math.sqrt(q.size(-1)),
             #mesh = xs.get_global_mesh(),
             )
         
