@@ -403,7 +403,7 @@ class Attend(Module):
                 is_causal = causal
             )
         """
-        output = flash_attention(
+        out = flash_attention(
             q = q,
             k = k,
             v = v,
