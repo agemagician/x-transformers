@@ -403,6 +403,7 @@ class Attend(Module):
                 is_causal = causal
             )
         """
+        q /= math.sqrt(query.size(-1))
         out = flash_attention(
             q = q,
             k = k,
