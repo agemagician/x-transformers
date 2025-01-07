@@ -404,7 +404,7 @@ class Attend(Module):
                 is_causal = causal
             )
         """
-        q /= math.sqrt(q.size(-1))
+        #q /= math.sqrt(q.size(-1))
         out = flash_attention(
             q = q,
             k = k,
@@ -412,6 +412,7 @@ class Attend(Module):
             causal = causal,
             ab = mask,
             partition_spec = ("fsdp", "tensor", None, None),
+            sm_scale = 1 / math.sqrt(q.size(-1)),
             #mesh = xs.get_global_mesh(),
             )
         
