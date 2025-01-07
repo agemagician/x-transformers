@@ -414,7 +414,7 @@ class Attend(Module):
             ab = mask,
             partition_spec = ("fsdp", "tensor", None, None),
             #sm_scale = self.scale,
-            sm_scale = 1 / math.sqrt(q.size(-1)),
+            sm_scale = q.shape[-1] ** -0.5,
             #mesh = xs.get_global_mesh(),
             )
         
