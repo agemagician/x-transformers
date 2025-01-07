@@ -410,7 +410,7 @@ class Attend(Module):
             causal = causal,
             ab = mask,
             partition_spec = ("fsdp", "tensor", None, None),
-            mesh = xs.get_global_mesh(),
+            #mesh = xs.get_global_mesh(),
             )
         
         # for a row that is entirely masked out, should zero out the output of that row token
