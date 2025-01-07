@@ -16,7 +16,7 @@ from dataclasses import dataclass
 from einops import rearrange, repeat, pack, unpack
 
 # Use built-in kernels
-import torch_xla.experimental.custom_kernel
+from torch_xla.experimental.custom_kernel import flash_attention
 import torch_xla.distributed.spmd as xs
 
 # constants
