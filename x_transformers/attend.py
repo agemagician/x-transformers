@@ -19,7 +19,7 @@ from einops import rearrange, repeat, pack, unpack
 from torch_xla.experimental.custom_kernel import flash_attention
 import torch_xla.distributed.spmd as xs
 import math
-import torch_xla
+#import torch_xla
 
 # constants
 
@@ -426,7 +426,6 @@ class Attend(Module):
 
         return out, Intermediates()
 
-    @torch_xla.compile()
     def forward(
         self,
         q, k, v,
