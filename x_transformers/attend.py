@@ -15,7 +15,7 @@ from dataclasses import dataclass
 
 from einops import rearrange, repeat, pack, unpack
 
-import transformers.utils.is_torch_xla_available
+from transformers.utils.import_utils import is_torch_xla_available
 if is_torch_xla_available():
     # Use built-in kernels
     from torch_xla.experimental.custom_kernel import flash_attention
