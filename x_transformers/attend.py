@@ -15,11 +15,14 @@ from dataclasses import dataclass
 
 from einops import rearrange, repeat, pack, unpack
 
-# Use built-in kernels
-from torch_xla.experimental.custom_kernel import flash_attention
-import torch_xla.distributed.spmd as xs
-import math
-#import torch_xla
+import transformers.utils.is_torch_xla_available
+if is_torch_xla_available():
+    # Use built-in kernels
+    from torch_xla.experimental.custom_kernel import flash_attention
+    import torch_xla.distributed.spmd as xs
+    import math
+    #import torch_xla
+
 
 # constants
 
@@ -396,29 +399,31 @@ class Attend(Module):
 
             mask = attn_bias
 
-        # pytorch 2.0 flash attn: q, k, v, mask, dropout, causal, softmax_scale
-        """
-        with self.sdp_context_manager():
-            out = F.scaled_dot_product_attention(
-                q, k, v,
-                attn_mask = mask,
-                dropout_p = self.dropout if self.training else 0., 
-                is_causal = causal
-            )
-        """
-        #q /= math.sqrt(q.size(-1))
-        out = flash_attention(
-            q = q,
-            k = k,
-            v = v,
-            causal = causal,
-            ab = mask,
-            partition_spec = ("fsdp", "tensor", None, None),
-            #sm_scale = self.scale,
-            sm_scale = q.shape[-1] ** -0.5,
-            #mesh = xs.get_global_mesh(),
-            )
+
+        if is_torch_xla_available():
+            #q /= math.sqrt(q.size(-1))
+            out = flash_attention(
+                q = q,
+                k = k,
+                v = v,
+                causal = causal,
+                ab = mask,
+                partition_spec = ("fsdp", "tensor", None, None),
+                #sm_scale = self.scale,
+                sm_scale = q.shape[-1] ** -0.5,
+                #mesh = xs.get_global_mesh(),
+                )
+        else:
+            # pytorch 2.0 flash attn: q, k, v, mask, dropout, causal, softmax_scale
         
+            with self.sdp_context_manager():
+                out = F.scaled_dot_product_attention(
+                    q, k, v,
+                    attn_mask = mask,
+                    dropout_p = self.dropout if self.training else 0., 
+                    is_causal = causal
+                )
+            
         # for a row that is entirely masked out, should zero out the output of that row token
 
         if exists(row_is_entirely_masked) and row_is_entirely_masked.any():
