@@ -1128,7 +1128,8 @@ class FeedForward(Module):
 
         self.ff = Sequential(
             project_in,
-            LayerNorm(inner_dim) if post_act_ln else None,
+            #LayerNorm(inner_dim) if post_act_ln else None,
+            SimpleRMSNorm(inner_dim) if post_act_ln else None,
             nn.Dropout(dropout),
             nn.Linear(inner_dim, dim_out, bias = not no_bias)
         )
